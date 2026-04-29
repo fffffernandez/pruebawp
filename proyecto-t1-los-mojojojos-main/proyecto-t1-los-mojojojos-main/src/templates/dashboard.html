@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Granada Smart City{% endblock %}
+{% block dashboard_active %}active{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5">
+                <i class="bi bi-speedometer2 text-primary"></i>
+                Cuadro de Mando Estratégico
+            </h1>
+            <p class="text-muted">Análisis del consumo energético de Granada</p>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="bi bi-funnel-fill"></i> Filtros de Consulta</h5>
+                </div>
+                <div class="card-body">
+                    <form id="filtrosForm">
+                        <div class="row g-3">
+                            <!-- Selector de Zona -->
+                            <div class="col-md-12">
+                                <label for="zona" class="form-label"><i class="bi bi-geo-alt-fill"></i> Sector de Zona</label>
+                                <select class="form-select" id="zona" name="zona" required>
+                                    <option value="" selected disabled>Seleccionar zona...</option>
+                                    {% for zona in zonas %}
+                                    <option value="{{ zona.value }}">{{ zona.label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Fecha/Hora Inicio -->
+                            <div class="col-md-6">
+                                <label class="form-label"><i class="bi bi-calendar-event"></i> Fecha Inicio</label>
+                                <div class="row g-2">
+                                    <div class="col-3">
+                                        <select class="form-select" id="anio_inicio" name="anio_inicio" required>
+                                            <option value="">Año</option>
+                                            {% for anio in range(2015, 2026) %}
+                                            <option value="{{ anio }}">{{ anio }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-3">
+                                        <select class="form-select" id="mes_inicio" name="mes_inicio" required>
+                                            <option value="">Mes</option>
+                                            <option value="1">Ene</option>
+                                            <option value="2">Feb</option>
+                                            <option value="3">Mar</option>
+                                            <option value="4">Abr</option>
+                                            <option value="5">May</option>
+                                            <option value="6">Jun</option>
+                                            <option value="7">Jul</option>
+                                            <option value="8">Ago</option>
+                                            <option value="9">Sep</option>
+                                            <option value="10">Oct</option>
+                                            <option value="11">Nov</option>
+                                            <option value="12">Dic</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-3">
+                                        <select class="form-select" id="dia_inicio" name="dia_inicio" required>
+                                            <option value="">Día</option>
+                                            {% for dia in range(1, 32) %}
+                                            <option value="{{ dia }}">{{ dia }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-3">
+                                        <select class="form-select" id="hora_inicio" name="hora_inicio" required>
+                                            <option value="">Hora</option>
+                                            {% for hora in range(0, 24) %}
+                                            <option value="{{ hora }}">{{ "%02d"|format(hora) }}:00</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Fecha/Hora Fin -->
+                            <div class="col-md-6">
+                                <label class="form-label"><i class="bi bi-calendar-check"></i> Fecha/Hora Fin</label>
+                                <div class="row g-2">
+                                    <div class="col-3">
+                                        <select class="form-select" id="anio_fin" name="anio_fin" required>
+                                            <option value="">Año</option>
+                                            {% for anio in range(2015, 2026) %}
+                                            <option value="{{ anio }}">{{ anio }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-3">
+                                        <select class="form-select" id="mes_fin" name="mes_fin" required>
+                                            <option value="">Mes</option>
+                                            <option value="1">Ene</option>
+                                            <option value="2">Feb</option>
+                                            <option value="3">Mar</option>
+                                            <option value="4">Abr</option>
+                                            <option value="5">May</option>
+                                            <option value="6">Jun</option>
+                                            <option value="7">Jul</option>
+                                            <option value="8">Ago</option>
+                                            <option value="9">Sep</option>
+                                            <option value="10">Oct</option>
+                                            <option value="11">Nov</option>
+                                            <option value="12">Dic</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-3">
+                                        <select class="form-select" id="dia_fin" name="dia_fin" required>
+                                            <option value="">Día</option>
+                                            {% for dia in range(1, 32) %}
+                                            <option value="{{ dia }}">{{ dia }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-3">
+                                        <select class="form-select" id="hora_fin" name="hora_fin" required>
+                                            <option value="">Hora</option>
+                                            {% for hora in range(0, 24) %}
+                                            <option value="{{ hora }}">{{ "%02d"|format(hora) }}:00</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Botón Consultar -->
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary btn-lg w-100">
+                                    <i class="bi bi-search"></i> Consultar Datos
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Área de Resultados (inicialmente oculta) -->
+    <div id="resultados" style="display: none;">
+        <!-- Título de la consulta -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <strong>Consultando:</strong> <span id="zonaSeleccionada"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPIs Cards -->
+        <div class="row g-4 mb-4">
+            <!-- Consumo Total -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-lightning-charge-fill text-warning display-4"></i>
+                        <h3 class="mt-3 mb-0" id="consumoTotal">0 kWh</h3>
+                        <p class="text-muted mb-0">Consumo Eléctrico Total</p>
+                        <small class="text-muted">Período seleccionado</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generado por Hora -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-speedometer text-info display-4"></i>
+                        <h3 class="mt-3 mb-0" id="consumoPromedio">0 kWh</h3>
+                        <p class="text-muted mb-0">Total Generado por Hora</p>
+                        <small class="text-muted">Promedio</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Temperatura -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-thermometer-half text-danger display-4"></i>
+                        <h3 class="mt-3 mb-0" id="temperatura">0°C</h3>
+                        <p class="text-muted mb-0">Temperatura Media</p>
+                        <small class="text-muted">Período seleccionado</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pico Máximo -->
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-graph-up text-success display-4"></i>
+                        <h3 class="mt-3 mb-0" id="picoMaximo">0 kWh</h3>
+                        <p class="text-muted mb-0">Pico Máximo</p>
+                        <small class="text-muted">Registro máximo</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Consumo (T °C) -->
+        <div class="row g-4 mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-thermometer-sun"></i> Consumo (T °C)
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="tempConsumoChart" style="max-height: 400px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Consumo por Hora -->
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0">
+                            <i class="bi bi-graph-up"></i> Consumo por Zona
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="consumoHoraChart" style="max-height: 300px;"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mensaje inicial -->
+    <div id="mensajeInicial" class="row">
+        <div class="col-12">
+            <div class="text-center py-5">
+                <i class="bi bi-funnel display-1 text-muted"></i>
+                <h3 class="mt-3 text-muted">Selecciona los filtros para consultar los datos</h3>
+                <p class="text-muted">Elige una zona, fecha de inicio y fecha de fin</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="row" style="display: none;">
+        <div class="col-12">
+            <div class="text-center py-5">
+                <div class="spinner-border text-primary" role="status" style="width: 4rem; height: 4rem;">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <h3 class="mt-4 text-primary">Consultando datos...</h3>
+                <p class="text-muted">Por favor espera un momento</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+let chartHora = null;
+let chartTemp = null;
+
+document.getElementById('filtrosForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Deshabilitar el botón de submit para evitar doble clic
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.disabled = true;
+    
+    // Obtener valores del formulario
+    const formData = new FormData(e.target);
+    const params = new URLSearchParams();
+    
+    for (let [key, value] of formData.entries()) {
+        params.append(key, value);
+    }
+    
+    // Mostrar loading y ocultar otros elementos
+    document.getElementById('mensajeInicial').style.display = 'none';
+    document.getElementById('resultados').style.display = 'none';
+    document.getElementById('loadingSpinner').style.display = 'block';
+    
+    try {
+        // Llamar a la API
+        const response = await fetch(`/api/dashboard/filtrar?${params.toString()}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            // Ocultar loading y mostrar resultados
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('resultados').style.display = 'block';
+            
+            // Actualizar KPIs
+            document.getElementById('zonaSeleccionada').textContent = data.zona;
+            document.getElementById('consumoTotal').textContent = Number(data.kpis.consumo_total || 0).toLocaleString('es-ES', {maximumFractionDigits: 0}) + ' kWh';
+            document.getElementById('consumoPromedio').textContent = Number(data.kpis.consumo_promedio || 0).toLocaleString('es-ES', {maximumFractionDigits: 1}) + ' kWh';
+            document.getElementById('temperatura').textContent = Number(data.kpis.temperatura_media || 0).toFixed(1) + '°C';
+            document.getElementById('picoMaximo').textContent = Number(data.kpis.pico_maximo || 0).toLocaleString('es-ES', {maximumFractionDigits: 0}) + ' kWh';
+            
+            // Actualizar gráfico de CONSUMO POR ZONA (todas las zonas)
+            if (chartHora) chartHora.destroy();
+            const ctxHora = document.getElementById('consumoHoraChart');
+            chartHora = new Chart(ctxHora, {
+                type: 'bar',
+                data: {
+                    labels: data.consumo_por_zona.map(d => d.zona),
+                    datasets: [{
+                        label: 'Consumo Total por Zona (kWh)',
+                        data: data.consumo_por_zona.map(d => d.consumo_total),
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'kWh'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Zonas de Granada'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Actualizar gráfico de consumo y temperatura por hora (2 líneas)
+            if (chartTemp) chartTemp.destroy();
+            const ctxTemp = document.getElementById('tempConsumoChart');
+            
+            // Crear labels con formato "DD Mes HH:mm"
+            const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            const labels = data.consumo_temp_por_hora.map(d => {
+                return `${d.day_of_month} ${meses[d.month - 1]} ${d.hour}h`;
+            });
+            
+            chartTemp = new Chart(ctxTemp, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Consumo (kWh)',
+                            data: data.consumo_temp_por_hora.map(d => d.consumo_promedio),
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.4,
+                            fill: false,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Temperatura (°C)',
+                            data: data.consumo_temp_por_hora.map(d => d.temperatura_promedio),
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            tension: 0.4,
+                            fill: false,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    scales: {
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Consumo (kWh)'
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Temperatura (°C)'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Hora del día'
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            // Ocultar loading y mostrar error
+            document.getElementById('loadingSpinner').style.display = 'none';
+            document.getElementById('mensajeInicial').style.display = 'block';
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        // Ocultar loading y mostrar error
+        document.getElementById('loadingSpinner').style.display = 'none';
+        document.getElementById('mensajeInicial').style.display = 'block';
+        console.error('Error:', error);
+        alert('Error al consultar los datos: ' + error.message);
+    } finally {
+        // Rehabilitar el botón
+        submitBtn.disabled = false;
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,533 @@
+{% extends "base.html" %}
+
+{% block title %}Predicción de Consumo - Granada Smart City{% endblock %}
+{% block prediction_active %}active{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="mb-4">
+            <i class="bi bi-graph-up-arrow"></i>
+            Predicción de Consumo Eléctrico
+        </h1>
+    </div>
+</div>
+
+<!-- Formulario de Predicción -->
+<div class="row">
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-calendar-range"></i>
+                    Parámetros de Predicción
+                </h5>
+            </div>
+            <div class="card-body">
+                <form id="predictionForm">
+                    <!-- Fecha Inicio -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-calendar-check"></i>
+                            Fecha Inicio
+                        </label>
+                        <input type="date" 
+                               class="form-control mb-2" 
+                               id="fechaInicioDate" 
+                               required>
+                        <select class="form-select" id="fechaInicioHora" required>
+                            <option value="">Selecciona hora...</option>
+                            <option value="00">00:00</option>
+                            <option value="01">01:00</option>
+                            <option value="02">02:00</option>
+                            <option value="03">03:00</option>
+                            <option value="04">04:00</option>
+                            <option value="05">05:00</option>
+                            <option value="06">06:00</option>
+                            <option value="07">07:00</option>
+                            <option value="08">08:00</option>
+                            <option value="09">09:00</option>
+                            <option value="10">10:00</option>
+                            <option value="11">11:00</option>
+                            <option value="12">12:00</option>
+                            <option value="13">13:00</option>
+                            <option value="14">14:00</option>
+                            <option value="15">15:00</option>
+                            <option value="16">16:00</option>
+                            <option value="17">17:00</option>
+                            <option value="18">18:00</option>
+                            <option value="19">19:00</option>
+                            <option value="20">20:00</option>
+                            <option value="21">21:00</option>
+                            <option value="22">22:00</option>
+                            <option value="23">23:00</option>
+                        </select>
+                    </div>
+
+                    <!-- Fecha Fin -->
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="bi bi-calendar-x"></i>
+                            Fecha/Hora Fin
+                        </label>
+                        <input type="date" 
+                               class="form-control mb-2" 
+                               id="fechaFinDate" 
+                               required>
+                        <select class="form-select" id="fechaFinHora" required>
+                            <option value="">Selecciona hora...</option>
+                            <option value="00">00:00</option>
+                            <option value="01">01:00</option>
+                            <option value="02">02:00</option>
+                            <option value="03">03:00</option>
+                            <option value="04">04:00</option>
+                            <option value="05">05:00</option>
+                            <option value="06">06:00</option>
+                            <option value="07">07:00</option>
+                            <option value="08">08:00</option>
+                            <option value="09">09:00</option>
+                            <option value="10">10:00</option>
+                            <option value="11">11:00</option>
+                            <option value="12">12:00</option>
+                            <option value="13">13:00</option>
+                            <option value="14">14:00</option>
+                            <option value="15">15:00</option>
+                            <option value="16">16:00</option>
+                            <option value="17">17:00</option>
+                            <option value="18">18:00</option>
+                            <option value="19">19:00</option>
+                            <option value="20">20:00</option>
+                            <option value="21">21:00</option>
+                            <option value="22">22:00</option>
+                            <option value="23">23:00</option>
+                        </select>
+                    </div>
+
+                    <!-- Zona -->
+                    <div class="mb-3">
+                        <label for="zona" class="form-label">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            Sector de Zona
+                        </label>
+                        <select class="form-select" id="zona" required>
+                            <option value="">Cargando zonas...</option>
+                        </select>
+                    </div>
+
+                    <!-- Botón Predecir -->
+                    <button type="submit" 
+                            class="btn btn-primary w-100" 
+                            id="btnPredecir">
+                        <i class="bi bi-lightning-charge-fill"></i>
+                        Predecir Consumo
+                    </button>
+                </form>
+
+                <!-- Loading Spinner -->
+                <div id="loadingSpinner" class="text-center mt-3" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Calculando...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Calculando predicciones...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados -->
+    <div class="col-lg-8 col-md-6">
+        <div id="resultadosContainer" style="display: none;">
+            <!-- Card: Consumo Total -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-primary">
+                        <div class="card-body text-center">
+                            <i class="bi bi-lightning-charge-fill text-primary" style="font-size: 3rem;"></i>
+                            <h6 class="text-muted mt-2">CONSUMO ELÉCTRICO TOTAL</h6>
+                            <h2 class="text-primary mb-0" id="consumoTotal">0.0</h2>
+                            <small class="text-muted">kWh</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card shadow-sm border-info">
+                        <div class="card-body text-center">
+                            <i class="bi bi-clock-history text-info" style="font-size: 3rem;"></i>
+                            <h6 class="text-muted mt-2">TOTAL GENERADO POR HORA</h6>
+                            <h2 class="text-info mb-0" id="totalPorHora">0.0</h2>
+                            <small class="text-muted">kWh/hora</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Adicional -->
+            <div class="card shadow">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        Detalles de la Predicción
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Zona:</strong></p>
+                            <p class="text-muted" id="detalleZona">-</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Período:</strong></p>
+                            <p class="text-muted" id="detallePeriodo">-</p>
+                        </div>
+                        <div class="col-md-4">
+                            <p class="mb-1"><strong>Total Horas:</strong></p>
+                            <p class="text-muted" id="detalleHoras">-</p>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <p class="mb-1"><strong>Fuente de Temperatura:</strong></p>
+                            <p class="text-muted" id="detalleFuente">-</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gráfico de Comparación: Real vs Predicción -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-graph-up"></i>
+                        Comparación: Consumo Real vs Predicción
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="comparisonChart" style="max-height: 400px;"></canvas>
+                </div>
+            </div>
+
+            <!-- Tabla de Predicciones por Hora -->
+            <div class="card shadow mt-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-table"></i>
+                        Predicciones Hora por Hora
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-striped table-hover">
+                            <thead class="table-primary sticky-top">
+                                <tr>
+                                    <th>Fecha/Hora</th>
+                                    <th>Temperatura (°C)</th>
+                                    <th>Consumo Predicho (kWh)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaPredeciones">
+                                <!-- Se llenará con JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensaje de Error -->
+        <div id="errorContainer" class="alert alert-danger" style="display: none;" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <strong>Error:</strong> <span id="errorMessage"></span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+let comparisonChart = null;
+
+// Cargar zonas disponibles al iniciar
+async function cargarZonas() {
+    try {
+        const response = await fetch('/prediction/api/zones');
+        const data = await response.json();
+        
+        const selectZona = document.getElementById('zona');
+        selectZona.innerHTML = '<option value="">Selecciona una zona...</option>';
+        
+        // El endpoint devuelve {zones: [...], count: N}
+        const zonas = data.zones || [];
+        
+        zonas.forEach(zona => {
+            const option = document.createElement('option');
+            option.value = zona;
+            // Formatear nombre: reemplazar _ por espacios y aplicar Title Case
+            const nombreFormateado = zona
+                .split('_')
+                .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase())
+                .join(' ');
+            option.textContent = nombreFormateado;
+            selectZona.appendChild(option);
+        });
+        
+        console.log(`✅ ${zonas.length} zonas cargadas correctamente`);
+    } catch (error) {
+        console.error('❌ Error cargando zonas:', error);
+        document.getElementById('zona').innerHTML = '<option value="">Error al cargar zonas</option>';
+    }
+}
+
+// Manejar envío del formulario
+document.getElementById('predictionForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Combinar fecha + hora
+    const fechaInicioDate = document.getElementById('fechaInicioDate').value;
+    const fechaInicioHora = document.getElementById('fechaInicioHora').value;
+    const fechaFinDate = document.getElementById('fechaFinDate').value;
+    const fechaFinHora = document.getElementById('fechaFinHora').value;
+    const zona = document.getElementById('zona').value;
+    
+    // Validaciones
+    if (!fechaInicioDate || !fechaInicioHora || !fechaFinDate || !fechaFinHora || !zona) {
+        mostrarError('Por favor completa todos los campos');
+        return;
+    }
+    
+    // Construir timestamps completos
+    const fechaInicio = `${fechaInicioDate}T${fechaInicioHora.padStart(2, '0')}:00:00`;
+    const fechaFin = `${fechaFinDate}T${fechaFinHora.padStart(2, '0')}:00:00`;
+    
+    const inicio = new Date(fechaInicio);
+    const fin = new Date(fechaFin);
+    
+    if (fin <= inicio) {
+        mostrarError('La fecha fin debe ser posterior a la fecha inicio');
+        return;
+    }
+    
+    // Mostrar loading
+    document.getElementById('loadingSpinner').style.display = 'block';
+    document.getElementById('btnPredecir').disabled = true;
+    document.getElementById('resultadosContainer').style.display = 'none';
+    document.getElementById('errorContainer').style.display = 'none';
+    
+    try {
+        // Generar predicciones hora por hora
+        const predicciones = [];
+        let currentDate = new Date(inicio);
+        
+        while (currentDate <= fin) {
+            const timestamp = currentDate.toISOString();
+            
+            const response = await fetch('/prediction/api/predict', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    timestamp: timestamp,
+                    zone_name: zona
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`Error en predicción: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            predicciones.push({
+                timestamp: timestamp,
+                prediction: data.prediction,
+                temperature: data.temperature,
+                temperature_source: data.temperature_source,
+                real_consumption: data.real_consumption ?? null
+            });
+            
+            // Avanzar 1 hora
+            currentDate.setHours(currentDate.getHours() + 1);
+        }
+        
+        // Calcular totales
+        const consumoTotal = predicciones.reduce((sum, p) => sum + p.prediction, 0);
+        const totalHoras = predicciones.length;
+        const promedioPorHora = consumoTotal / totalHoras;
+        
+        // Mostrar resultados
+        mostrarResultados(predicciones, consumoTotal, promedioPorHora, zona, fechaInicio, fechaFin, totalHoras);
+        
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarError(error.message);
+    } finally {
+        document.getElementById('loadingSpinner').style.display = 'none';
+        document.getElementById('btnPredecir').disabled = false;
+    }
+});
+
+function mostrarResultados(predicciones, consumoTotal, promedioPorHora, zona, fechaInicio, fechaFin, totalHoras) {
+    // Actualizar cards principales
+    document.getElementById('consumoTotal').textContent = consumoTotal.toFixed(2);
+    document.getElementById('totalPorHora').textContent = promedioPorHora.toFixed(2);
+    
+    // Actualizar detalles
+    const nombreZonaFormateado = zona
+        .split('_')
+        .map(palabra => palabra.charAt(0).toUpperCase() + palabra.slice(1).toLowerCase())
+        .join(' ');
+    document.getElementById('detalleZona').textContent = nombreZonaFormateado;
+    document.getElementById('detallePeriodo').textContent = `${new Date(fechaInicio).toLocaleString('es-ES')} - ${new Date(fechaFin).toLocaleString('es-ES')}`;
+    document.getElementById('detalleHoras').textContent = `${totalHoras} horas`;
+    
+    // Fuente de temperatura (usar la primera predicción como referencia)
+    const fuenteMap = {
+        'open-meteo': 'API Open-Meteo (datos en tiempo real)',
+        'historical_average': 'Promedio histórico (últimos 5 años)',
+        'default_average': 'Valor por defecto (15.5°C)'
+    };
+    document.getElementById('detalleFuente').textContent = fuenteMap[predicciones[0].temperature_source] || predicciones[0].temperature_source;
+    
+    // Crear gráfico de comparación
+    if (comparisonChart) comparisonChart.destroy();
+    
+    const ctx = document.getElementById('comparisonChart');
+    const labels = predicciones.map(p => new Date(p.timestamp).toLocaleString('es-ES', {
+        day: '2-digit',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit'
+    }));
+    
+    const datasets = [
+        {
+            label: 'Predicción del Modelo',
+            data: predicciones.map(p => p.prediction),
+            borderColor: 'rgba(54, 162, 235, 1)',
+            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+            borderWidth: 2,
+            tension: 0.4
+        }
+    ];
+    
+    // Agregar dataset de consumo real si hay datos
+    const realData = predicciones.map(p => p.real_consumption);
+    // Verificar si hay al menos un valor real (no null y no undefined)
+    const hasRealData = realData.some(val => val !== null && val !== undefined && !isNaN(val));
+    
+    if (hasRealData) {
+        datasets.unshift({
+            label: 'Consumo Real',
+            data: realData,
+            borderColor: 'rgba(220, 53, 69, 1)',
+            backgroundColor: 'rgba(220, 53, 69, 0.1)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: false
+        });
+    }
+    
+    comparisonChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + ' kWh';
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    title: {
+                        display: true,
+                        text: 'Consumo (kWh)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 45
+                    }
+                }
+            }
+        }
+    });
+    
+    // Llenar tabla
+    const tbody = document.getElementById('tablaPredeciones');
+    tbody.innerHTML = '';
+    
+    predicciones.forEach(pred => {
+        const tr = document.createElement('tr');
+        const realConsumption = pred.real_consumption !== null && pred.real_consumption !== undefined
+            ? `<strong>${pred.real_consumption.toFixed(2)} kWh</strong>`
+            : '<span class="text-muted">N/A</span>';
+        
+        tr.innerHTML = `
+            <td>${new Date(pred.timestamp).toLocaleString('es-ES')}</td>
+            <td>${pred.temperature.toFixed(1)}°C</td>
+            <td>${realConsumption}</td>
+            <td><strong class="text-primary">${pred.prediction.toFixed(2)} kWh</strong></td>
+        `;
+        tbody.appendChild(tr);
+    });
+    
+    // Mostrar contenedor de resultados
+    document.getElementById('resultadosContainer').style.display = 'block';
+    
+    // Scroll suave hacia resultados
+    document.getElementById('resultadosContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function mostrarError(mensaje) {
+    document.getElementById('errorMessage').textContent = mensaje;
+    document.getElementById('errorContainer').style.display = 'block';
+    document.getElementById('resultadosContainer').style.display = 'none';
+}
+
+// Cargar zonas al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    cargarZonas();
+    
+    // Establecer fecha y hora actual como inicio
+    const ahora = new Date();
+    const fechaStr = ahora.toISOString().split('T')[0]; // YYYY-MM-DD
+    const horaStr = ahora.getHours(); // 0-23
+    
+    const fechaInicioDateEl = document.getElementById('fechaInicioDate');
+    const fechaInicioHoraEl = document.getElementById('fechaInicioHora');
+    const fechaFinDateEl = document.getElementById('fechaFinDate');
+    const fechaFinHoraEl = document.getElementById('fechaFinHora');
+    
+    if (fechaInicioDateEl) fechaInicioDateEl.value = fechaStr;
+    if (fechaInicioHoraEl) fechaInicioHoraEl.value = horaStr;
+    
+    // Fecha fin = inicio + 24 horas por defecto
+    const fin = new Date(ahora);
+    fin.setHours(fin.getHours() + 24);
+    const fechaFinStr = fin.toISOString().split('T')[0];
+    const horaFinStr = fin.getHours();
+    
+    if (fechaFinDateEl) fechaFinDateEl.value = fechaFinStr;
+    if (fechaFinHoraEl) fechaFinHoraEl.value = horaFinStr;
+});
+</script>
+{% endblock %}
